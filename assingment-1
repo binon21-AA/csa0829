@@ -1,0 +1,361 @@
+﻿CO-1 PYTHON ASSIGNMENT — EXTRACTED SOURCE CODE
+Source: CO1-PYTHON.docx
+TASK 1
+# Input Variables
+farmer_id = "F001"
+litres = 10.5
+fat = 4.2
+snf = 8.7
+shift = "Morning"
+# Constants
+BASE_RATE = 30.00
+STANDARD_FAT = 3.5
+STANDARD_SNF = 8.5
+FAT_STEP_VALUE = 0.40
+SNF_STEP_VALUE = 0.30
+MIN_FAT = 2.0
+MAX_FAT = 7.0
+# Display Information
+print("Farmer ID :", farmer_id)
+print("Litres :", litres)
+print("Fat :", fat)
+print("SNF :", snf)
+print("Shift :", shift)
+
+TASK 2
+from decimal import Decimal
+print(type(10))
+print(type(10.0))
+print(type("10"))
+print(type(True))
+print(type([10, 8.5]))
+print(7 / 2)
+print(7 // 2)
+print(7 % 2)
+print(-7 // 2)
+print(0.1 + 0.2 == 0.3)
+float_total = 33400.3
+decimal_total = Decimal("33400.30")
+print("float :", float_total)
+print("Decimal:", decimal_total)
+print(0.1 + 0.2 == 0.3)
+print(Decimal("0.1") + Decimal("0.2") == Decimal("0.3"))
+
+TASK 3
+# Named Constants
+
+BASE_RATE = 30.00
+STANDARD_FAT = 3.5
+STANDARD_SNF = 8.5
+FAT_STEP_VALUE = 0.40
+SNF_STEP_VALUE = 0.30
+MIN_FAT = 2.0
+MAX_FAT = 7.0
+
+# Variables
+
+farmer_id = "F001"
+litres = 10.0
+fat = 4.2
+snf = 8.7
+shift = "Morning"
+
+# Multiple Assignment
+
+a, b = 10, 20
+
+# Swapping Values
+
+a, b = b, a
+
+print("Farmer ID :", farmer_id)
+print("Litres :", litres)
+print("Fat :", fat)
+print("SNF :", snf)
+print("Shift :", shift)
+
+print("a =", a)
+print("b =", b)
+
+TASK 4
+BASE_RATE = 30.00
+STANDARD_FAT = 3.5
+STANDARD_SNF = 8.5
+
+FAT_STEP_VALUE = 0.40
+SNF_STEP_VALUE = 0.30
+
+litres = 10
+fat = 4.2
+snf = 8.7
+
+fat_steps = round((fat - STANDARD_FAT) / 0.1)
+snf_steps = round((snf - STANDARD_SNF) / 0.1)
+
+rate = (
+BASE_RATE
++ (fat_steps * FAT_STEP_VALUE)
++ (snf_steps * SNF_STEP_VALUE)
+)
+
+payment = litres * rate
+
+print("Fat Steps =", fat_steps)
+print("SNF Steps =", snf_steps)
+print("Rate =", rate)
+print("Payment =", payment)
+
+TASK 5
+from decimal import Decimal
+
+try:
+          farmer_id = input("Enter Farmer ID: ").strip()
+          litres = Decimal(input("Enter Litres: "))
+          fat = Decimal(input("Enter Fat Percentage: "))
+          snf = Decimal(input("Enter SNF Percentage: "))
+          shift = input("Enter Shift (Morning/Evening): ").strip()
+
+          if farmer_id == "":
+                    print("Error: Farmer ID cannot be empty")
+
+          elif litres < 0:
+                    print("Error: Litres cannot be negative")
+
+          elif not (Decimal("2.0") <= fat <= Decimal("7.0")):
+                    print("Error: Fat percentage out of range")
+
+          elif shift.lower() not in ["morning", "evening"]:
+                    print("Error: Invalid shift")
+
+          else:
+                    print("Valid Entry")
+                    print("Farmer ID :", farmer_id)
+                    print("Litres :", litres)
+                    print("Fat :", fat)
+                    print("SNF :", snf)
+                    print("Shift :", shift)
+
+except Exception:
+          print("Error: Invalid numeric input")
+
+TASK 6
+from decimal import Decimal
+
+BASE_RATE = Decimal("30.00")
+STANDARD_FAT = Decimal("3.5")
+STANDARD_SNF = Decimal("8.5")
+FAT_STEP_VALUE = Decimal("0.40")
+SNF_STEP_VALUE = Decimal("0.30")
+
+
+def validate_entry(farmer_id, litres, fat, snf, shift):
+"""Validate milk collection entry"""
+
+if farmer_id == "":
+return False
+
+if litres < 0:
+return False
+
+if not (Decimal("2.0") <= fat <= Decimal("7.0")):
+return False
+
+if shift.lower() not in ["morning", "evening"]:
+return False
+
+return True
+
+
+def rate_per_litre(fat, snf):
+"""Calculate rate per litre"""
+
+fat_steps = round((fat - STANDARD_FAT) / Decimal("0.1"))
+snf_steps = round((snf - STANDARD_SNF) / Decimal("0.1"))
+
+rate = (BASE_RATE +
+fat_steps * FAT_STEP_VALUE +
+snf_steps * SNF_STEP_VALUE)
+
+return rate
+
+
+def payout(litres, fat, snf):
+"""Calculate payment amount"""
+
+rate = rate_per_litre(fat, snf)
+
+return litres * rate
+
+
+def ten_day_total(records):
+"""Calculate total payment"""
+
+total = Decimal("0.00")
+
+for record in records:
+litres, fat, snf = record
+total += payout(litres, fat, snf)
+
+return total
+
+
+records = [
+(Decimal("10"), Decimal("3.5"), Decimal("8.5")),
+(Decimal("8.5"), Decimal("4.2"), Decimal("8.7")),
+(Decimal("12"), Decimal("3.1"), Decimal("8.3"))
+]
+
+total = ten_day_total(records)
+
+print("Ten-Day Total =", total)
+
+TASK 7
+------------------------------------------------------------------------
+# File 1: milkrate.py
+from decimal import Decimal
+
+BASE_RATE = Decimal("30.00")
+STANDARD_FAT = Decimal("3.5")
+STANDARD_SNF = Decimal("8.5")
+
+FAT_STEP_VALUE = Decimal("0.40")
+SNF_STEP_VALUE = Decimal("0.30")
+
+
+def rate_per_litre(fat, snf):
+"""Calculate milk rate"""
+
+fat_steps = round((fat - STANDARD_FAT) / Decimal("0.1"))
+snf_steps = round((snf - STANDARD_SNF) / Decimal("0.1"))
+
+rate = (
+BASE_RATE
++ fat_steps * FAT_STEP_VALUE
++ snf_steps * SNF_STEP_VALUE
+)
+
+return rate
+
+
+def payout(litres, fat, snf):
+"""Calculate milk payment"""
+
+return litres * rate_per_litre(fat, snf)
+
+
+if __name__ == "__main__":
+print("Milk Rate Module Loaded")
+
+# File 2: main.py
+from decimal import Decimal
+import milkrate
+
+entries = [
+(Decimal("10"), Decimal("3.5"), Decimal("8.5")),
+(Decimal("8.5"), Decimal("4.2"), Decimal("8.7")),
+(Decimal("12"), Decimal("3.1"), Decimal("8.3"))
+]
+
+for litres, fat, snf in entries:
+
+rate = milkrate.rate_per_litre(fat, snf)
+payment = milkrate.payout(litres, fat, snf)
+
+print("Rate =", rate)
+print("Payment =", payment)
+print()
+
+TASK 8
+from decimal import Decimal
+
+BASE_RATE = Decimal("30.00")
+STANDARD_FAT = Decimal("3.5")
+STANDARD_SNF = Decimal("8.5")
+
+fat = Decimal("4.2")
+snf = Decimal("8.7")
+litres = Decimal("10")
+
+fat_steps = round((fat - STANDARD_FAT) / Decimal("0.1"))
+snf_steps = round((snf - STANDARD_SNF) / Decimal("0.1"))
+
+rate = (
+BASE_RATE
++ fat_steps * Decimal("0.40")
++ snf_steps * Decimal("0.30")
+)
+
+payment = litres * rate
+
+print("Rate =", rate)
+print("Payment =", payment)
+
+TASK 9
+def test_payment():
+test_cases = [
+(10, 3.5, 8.5, 300.00),
+(10, 4.2, 8.7, 334.00),
+(12, 3.1, 8.3, 333.60)
+]
+
+for litres, fat, snf, expected in test_cases:
+
+fat_steps = round((fat - 3.5) / 0.1)
+snf_steps = round((snf - 8.5) / 0.1)
+
+rate = 30 + fat_steps * 0.40 + snf_steps * 0.30
+payment = litres * rate
+
+print("Expected:", expected)
+print("Actual:", payment)
+
+test_payment()
+
+TASK 10
+from decimal import Decimal
+
+float_total = 0.0
+
+for i in range(300):
+float_total += 283.90
+
+decimal_total = Decimal("0.00")
+
+for i in range(300):
+decimal_total += Decimal("283.90")
+
+print("Float Total =", float_total)
+print("Decimal Total =", decimal_total)
+
+TASK 11
+from decimal import Decimal
+
+BASE_RATE = Decimal("30.00")
+
+def calculate_payment(litres, rate):
+return litres * rate
+
+payment = calculate_payment(
+Decimal("10"),
+BASE_RATE
+)
+
+print("Payment =", payment)
+
+TASK 12
+from decimal import Decimal
+
+def bonus(total_litres):
+
+if total_litres > 500:
+return total_litres * Decimal("0.50")
+
+return Decimal("0.00")
+
+
+total_litres = Decimal("550")
+
+bonus_amount = bonus(total_litres)
+
+print("Bonus =", bonus_amount)
+
