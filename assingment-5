@@ -1,0 +1,817 @@
+﻿CO5 PYTHON ASSIGNMENT 
+
+--- Code Example 1 (source paragraph 19, SQL) ---
+CREATE TABLE stations (
+    station_id INTEGER PRIMARY KEY,
+    station_name TEXT UNIQUE NOT NULL
+);
+
+CREATE TABLE readings (
+    reading_id INTEGER PRIMARY KEY,
+    station_id INTEGER NOT NULL,
+    reading_date TEXT NOT NULL,
+    hour INTEGER NOT NULL,
+    pm25 REAL,
+    pm10 REAL,
+    no2 REAL,
+    temperature_c REAL,
+    FOREIGN KEY (station_id) REFERENCES stations(station_id),
+    UNIQUE (station_id, reading_date, hour)
+);
+
+--- Code Example 2 (source paragraph 42, SQL) ---
+SELECT AVG(pm25)
+FROM readings
+JOIN stations USING(station_id)
+WHERE station_name = 'Adyar'
+AND reading_date BETWEEN '2026-10-01' AND '2026-10-31';
+
+--- Code Example 3 (source paragraph 48, SQL) ---
+SELECT station_name, AVG(pm10) AS average_pm10
+FROM readings
+JOIN stations USING(station_id)
+GROUP BY station_name
+ORDER BY average_pm10 DESC;
+
+--- Code Example 4 (source paragraph 54, SQL) ---
+SELECT reading_date, MAX(pm25)
+FROM readings
+GROUP BY reading_date
+ORDER BY reading_date;
+
+--- Code Example 5 (source paragraph 111, SQL) ---
+SELECT
+    station_name,
+    reading_date,
+    MIN(pm25) AS minimum_pm25,
+    MAX(pm25) AS maximum_pm25,
+    AVG(pm25) AS mean_pm25,
+    COUNT(pm25) AS valid_readings
+
+--- Code Example 6 (source paragraph 132, Python) ---
+import logging
+
+logging.basicConfig(
+    filename="cleaning.log",
+    level=logging.INFO
+)
+
+pm25 = 48.5
+
+assert pm25 >= 0
+
+logging.info("PM2.5 value processed: %s", pm25)
+
+print("PM2.5:", pm25)
+
+--- Code Example 7 (source paragraph 150, Python) ---
+import time
+
+start = time.perf_counter()
+
+total = sum(range(100000))
+
+end = time.perf_counter()
+
+print("Time:", end - start)
+
+--- Code Example 8 (source paragraph 161, Python) ---
+import timeit
+
+result = timeit.timeit(
+    "sum(range(1000))",
+    number=1000
+)
+
+print("Time:", result)
+
+--- Code Example 9 (source paragraph 171, Python) ---
+import cProfile
+
+cProfile.run("sum(range(100000))")
+
+--- Code Example 10 (source paragraph 217, SQL) ---
+SELECT AVG(pm25)
+FROM readings
+JOIN stations USING(station_id)
+WHERE station_name = ?
+AND reading_date = ?;
+
+--- Code Example 11 (source paragraph 243, Python) ---
+import csv
+import io
+
+RAW = """station,date,pm25
+Adyar,2026-10-01,48
+Adyar,2026-10-02,NA
+Adyar,2026-10-03,
+Guindy,2026-10-01,95
+Guindy,2026-10-02,-5
+Guindy,2026-10-03,121
+Guindy,2026-10-04,1500
+"""
+
+
+def load_clean(text):
+    """Return valid station, date and PM2.5 records."""
+
+    rows = []
+
+    reader = csv.DictReader(io.StringIO(text))
+
+    for row in reader:
+        value = row["pm25"].strip()
+
+        if value == "" or value.upper() == "NA":
+            continue
+
+        try:
+            pm25 = float(value)
+        except ValueError:
+            continue
+
+        if pm25 < 0 or pm25 > 999:
+            continue
+
+        rows.append((
+            row["station"].strip().title(),
+            row["date"].strip(),
+            pm25
+        ))
+
+    return rows
+
+
+def min_max(values):
+    if not values:
+        return []
+
+    minimum = min(values)
+    maximum = max(values)
+
+    if maximum == minimum:
+        return [0.0 for value in values]
+
+    return [
+        round((value - minimum) / (maximum - minimum), 3)
+        for value in values
+    ]
+
+
+clean = load_clean(RAW)
+
+print(clean)
+print(min_max([pm for _, _, pm in clean]))
+
+--- Code Example 12 (source paragraph 321, Python) ---
+import sqlite3
+
+readings = [
+    ("Adyar", "2026-10-01", 48.0),
+    ("Guindy", "2026-10-01", 95.0),
+    ("Guindy", "2026-10-03", 121.0)
+]
+
+con = sqlite3.connect("air_quality.db")
+
+con.execute("""
+CREATE TABLE IF NOT EXISTS readings (
+    station TEXT,
+    day TEXT,
+    pm25 REAL
+)
+""")
+
+con.execute("DELETE FROM readings")
+
+con.executemany(
+    "INSERT INTO readings VALUES (?, ?, ?)",
+    readings
+)
+
+con.commit()
+
+# Question 1: Average PM2.5 at Adyar
+result1 = con.execute("""
+SELECT AVG(pm25)
+
+--- Code Example 13 (source paragraph 355, Python) ---
+# Question 2: Highest PM2.5 reading by station
+result2 = con.execute("""
+SELECT station, MAX(pm25)
+
+--- Code Example 14 (source paragraph 362, Python) ---
+# Question 3: Daily average PM2.5
+result3 = con.execute("""
+SELECT day, AVG(pm25)
+
+--- Code Example 15 (source paragraph 370, Python) ---
+print("Adyar average:", result1[0])
+print("Station maximum:", result2)
+print("Daily averages:", result3)
+
+con.close()
+
+--- Code Example 16 (source paragraph 384, Python) ---
+import matplotlib.pyplot as plt
+
+# Sample data
+dates = ["Oct 1", "Oct 2", "Oct 3", "Oct 4"]
+pm25 = [48, 55, 62, 50]
+
+stations = ["Adyar", "Guindy", "T Nagar"]
+averages = [48, 95, 121]
+
+temperature = [28, 30, 32, 34, 36]
+pollution = [35, 42, 55, 70, 85]
+
+hours = [6, 9, 12, 15, 18, 21]
+hourly_pm25 = [30, 45, 60, 75, 90, 65]
+
+# 1. Line chart
+plt.figure()
+plt.plot(dates, pm25, marker="o")
+plt.title("Daily PM2.5 Trend")
+plt.xlabel("Date")
+plt.ylabel("PM2.5")
+plt.show()
+
+# 2. Bar chart
+plt.figure()
+plt.bar(stations, averages)
+plt.title("Station-wise PM2.5 Comparison")
+plt.xlabel("Station")
+plt.ylabel("Average PM2.5")
+plt.show()
+
+# 3. Scatter plot
+plt.figure()
+plt.scatter(temperature, pollution)
+plt.title("Temperature vs PM2.5")
+plt.xlabel("Temperature (Celsius)")
+plt.ylabel("PM2.5")
+plt.show()
+
+# 4. Hourly bar chart
+plt.figure()
+plt.bar(hours, hourly_pm25)
+plt.title("Hourly PM2.5 Comparison")
+plt.xlabel("Hour")
+plt.ylabel("PM2.5")
+plt.show()
+
+--- Code Example 17 (source paragraph 438, Python) ---
+import pandas as pd
+
+df = pd.read_csv("air_quality.csv")
+
+--- Code Example 18 (source paragraph 444, Python) ---
+    errors="coerce"
+)
+
+df = df.dropna(subset=["pm25"])
+
+df = df[
+    (df["pm25"] >= 0) &
+    (df["pm25"] <= 999)
+]
+
+minimum = df["pm25"].min()
+maximum = df["pm25"].max()
+
+if maximum != minimum:
+    df["normalised"] = (
+        (df["pm25"] - minimum) / (maximum - minimum)
+    )
+else:
+    df["normalised"] = 0.0
+
+print(df)
+
+--- Code Example 19 (source paragraph 478, Python) ---
+import sqlite3
+
+readings = [
+    ("Adyar", "2026-10-01", 48.0),
+    ("Guindy", "2026-10-01", 95.0),
+    ("Guindy", "2026-10-03", 121.0),
+    ("Adyar", "2026-10-04", 60.0)
+]
+
+con = sqlite3.connect(":memory:")
+
+con.execute("""
+CREATE TABLE aq (
+    station TEXT,
+    day TEXT,
+    pm25 REAL
+)
+""")
+
+# TODO 1: Insert all readings using one executemany call
+con.executemany(
+    "INSERT INTO aq VALUES (?, ?, ?)",
+    readings
+)
+
+con.commit()
+
+
+def station_average(name):
+    # TODO 2: Use a parameterised SELECT
+    result = con.execute(
+        "SELECT AVG(pm25) FROM aq WHERE station = ?",
+        (name,)
+    ).fetchone()
+
+    return result[0]
+
+
+print(
+    station_average("Adyar"),
+    station_average("Guindy")
+)
+
+print(station_average("Adyar' OR '1'='1"))
+
+con.close()
+
+--- Code Example 20 (source paragraph 533, Python) ---
+name = "Adyar' OR '1'='1"
+
+query = (
+    "SELECT AVG(pm25) FROM aq WHERE station = '"
+    + name + "'"
+)
+
+print(query)
+
+--- Code Example 21 (source paragraph 545, Python) ---
+import csv
+import io
+
+test_files = {
+    "missing_column": "station,date\nAdyar,2026-10-01",
+    "wrong_delimiter": "station;date;pm25\nAdyar;2026-10-01;48",
+    "empty_file": ""
+}
+
+for name, content in test_files.items():
+    print("\nTesting:", name)
+
+    try:
+        reader = csv.DictReader(io.StringIO(content))
+
+        if not reader.fieldnames:
+            print("Empty file or missing header")
+            continue
+
+        required = {"station", "date", "pm25"}
+
+        if not required.issubset(set(reader.fieldnames)):
+            print("Missing required columns")
+            continue
+
+        print("CSV structure is valid")
+
+    except Exception as error:
+        print("Error:", error)
+
+--- Code Example 22 (source paragraph 575, Python) ---
+try:
+    with open("wrong_encoding.csv", "r", encoding="utf-8") as file:
+        print(file.read())
+
+except UnicodeDecodeError:
+    print("Encoding error detected")
+
+--- Code Example 23 (source paragraph 597, Python) ---
+import csv
+import sqlite3
+import pandas as pd
+from collections import defaultdict
+
+data = [
+    ("Adyar", "2026-10-01", 48),
+    ("Adyar", "2026-10-01", 52),
+    ("Guindy", "2026-10-01", 90),
+    ("Guindy", "2026-10-01", 100),
+    ("Adyar", "2026-10-02", 60),
+    ("Guindy", "2026-10-02", 120)
+]
+
+# Create CSV file
+with open("small_air_quality.csv", "w", newline="") as file:
+    writer = csv.writer(file)
+    writer.writerow(["station", "date", "pm25"])
+    writer.writerows(data)
+
+
+# Method 1: Plain Python and CSV
+groups = defaultdict(list)
+
+with open("small_air_quality.csv", "r") as file:
+    reader = csv.DictReader(file)
+
+    for row in reader:
+        key = (row["station"], row["date"])
+        groups[key].append(float(row["pm25"]))
+
+python_result = {
+    key: sum(values) / len(values)
+    for key, values in groups.items()
+}
+
+
+# Method 2: Pandas
+df = pd.read_csv("small_air_quality.csv")
+
+pandas_result = (
+    df.groupby(["station", "date"])["pm25"]
+    .mean()
+    .to_dict()
+)
+
+
+# Method 3: SQLite
+con = sqlite3.connect(":memory:")
+
+con.execute("""
+CREATE TABLE readings (
+    station TEXT,
+    date TEXT,
+    pm25 REAL
+)
+""")
+
+con.executemany(
+    "INSERT INTO readings VALUES (?, ?, ?)",
+    data
+)
+
+sql_result = con.execute("""
+SELECT station, date, AVG(pm25)
+
+--- Code Example 24 (source paragraph 666, Python) ---
+sql_result = {
+    (station, date): average
+    for station, date, average in sql_result
+}
+
+
+print("Python:", python_result)
+print("Pandas:", pandas_result)
+print("SQL:", sql_result)
+
+print(
+    "All results agree:",
+    all(
+        abs(python_result[key] - pandas_result[key]) < 1e-9
+        and abs(python_result[key] - sql_result[key]) < 1e-9
+        for key in python_result
+    )
+)
+
+con.close()
+
+--- Code Example 25 (source paragraph 698, Python) ---
+import csv
+import random
+import sqlite3
+import time
+from collections import defaultdict
+from datetime import datetime, timedelta
+
+import pandas as pd
+
+
+def generate_data(station_count, filename):
+    start = datetime(2026, 1, 1)
+
+    with open(filename, "w", newline="") as file:
+        writer = csv.writer(file)
+        writer.writerow(["station", "date", "pm25"])
+
+        for station_number in range(station_count):
+            station = f"Station{station_number + 1}"
+
+            for hour_number in range(8760):
+                current = start + timedelta(hours=hour_number)
+
+                writer.writerow([
+                    station,
+                    current.strftime("%Y-%m-%d"),
+                    round(random.uniform(5, 150), 2)
+                ])
+
+
+def python_method(filename):
+    groups = defaultdict(lambda: [0.0, 0])
+
+    with open(filename, "r") as file:
+        reader = csv.DictReader(file)
+
+        for row in reader:
+            key = (row["station"], row["date"])
+            groups[key][0] += float(row["pm25"])
+            groups[key][1] += 1
+
+    return {
+        key: total / count
+        for key, (total, count) in groups.items()
+    }
+
+
+def pandas_method(filename):
+    df = pd.read_csv(filename)
+
+    result = df.groupby(
+        ["station", "date"]
+    )["pm25"].mean()
+
+    return result
+
+
+def sql_method(filename):
+    con = sqlite3.connect(":memory:")
+
+    con.execute("""
+        CREATE TABLE readings (
+            station TEXT,
+            date TEXT,
+            pm25 REAL
+        )
+    """)
+
+    with open(filename, "r") as file:
+        reader = csv.reader(file)
+        next(reader)
+
+        con.executemany(
+            "INSERT INTO readings VALUES (?, ?, ?)",
+            reader
+        )
+
+    result = con.execute("""
+        SELECT station, date, AVG(pm25)
+        FROM readings
+        GROUP BY station, date
+    """).fetchall()
+
+    con.close()
+    return result
+
+
+for count in [1, 12, 120]:
+    filename = f"data_{count}.csv"
+
+    generate_data(count, filename)
+
+    start = time.perf_counter()
+    python_method(filename)
+    python_time = time.perf_counter() - start
+
+    start = time.perf_counter()
+    pandas_method(filename)
+    pandas_time = time.perf_counter() - start
+
+    start = time.perf_counter()
+    sql_method(filename)
+    sql_time = time.perf_counter() - start
+
+    print("\nStations:", count)
+    print("Python:", python_time)
+    print("Pandas:", pandas_time)
+    print("SQL:", sql_time)
+
+--- Code Example 26 (source paragraph 808, Python) ---
+import cProfile
+
+cProfile.run(
+    "python_method('data_12.csv')",
+    sort="cumtime"
+)
+
+--- Code Example 27 (source paragraph 824, Python) ---
+from collections import defaultdict
+
+summary = defaultdict(lambda: [0.0, 0])
+
+for station, day, pm25 in readings:
+    key = (station, day)
+
+    summary[key][0] += pm25
+    summary[key][1] += 1
+
+for key, (total, count) in summary.items():
+    average = total / count
+    print(key, average)
+
+--- Code Example 28 (source paragraph 848, Python) ---
+POSITIVE = {
+    "good", "clean", "fast", "helpful", "improved"
+}
+
+NEGATIVE = {
+    "bad", "dirty", "slow", "rude", "smoke", "broken"
+}
+
+NEGATORS = {
+    "not", "never", "no"
+}
+
+
+def score(text):
+    words = (
+        text.lower()
+        .replace(".", " ")
+        .replace(",", " ")
+        .split()
+    )
+
+    total = 0
+
+    for index, word in enumerate(words):
+        if word in POSITIVE:
+            value = 1
+        elif word in NEGATIVE:
+            value = -1
+        else:
+            value = 0
+
+        if index > 0 and words[index - 1] in NEGATORS:
+            value = -value
+
+        total += value
+
+    return total
+
+
+def label(text):
+    value = score(text)
+
+    if value > 0:
+        return "positive"
+    elif value < 0:
+        return "negative"
+    else:
+        return "neutral"
+
+
+complaints = [
+    "Roads are clean and the bus was fast.",
+    "Smoke from the factory, air is bad.",
+    "The staff were not helpful.",
+    "Not bad, service improved."
+]
+
+for complaint in complaints:
+    print(f"{label(complaint):8} | {complaint}")
+
+--- Code Example 29 (source paragraph 916, Python) ---
+with open("complaints.txt", "r", encoding="utf-8") as file:
+    complaints = [
+        line.strip()
+        for line in file
+        if line.strip()
+    ]
+
+with open("manual_labels.txt", "r", encoding="utf-8") as file:
+    manual_labels = [
+        line.strip().lower()
+        for line in file
+        if line.strip()
+    ]
+
+if len(complaints) != len(manual_labels):
+    raise ValueError("Complaint and label counts do not match")
+
+if len(complaints) < 50:
+    raise ValueError("At least 50 complaints are required")
+
+predicted_labels = [
+    label(complaint)
+    for complaint in complaints
+]
+
+agreement = sum(
+    predicted == actual
+    for predicted, actual in zip(predicted_labels, manual_labels)
+)
+
+percentage = agreement / len(complaints) * 100
+
+print("Total complaints:", len(complaints))
+print("Agreed labels:", agreement)
+print("Agreement percentage:", round(percentage, 2), "%")
+
+--- Code Example 30 (source paragraph 954, Python) ---
+import re
+from collections import Counter
+
+STOP_WORDS = {
+    "the", "is", "a", "an", "and", "or",
+    "to", "of", "in", "on", "for", "are",
+    "was", "were", "it", "this", "that"
+}
+
+
+def summarise(text, k=2):
+    sentences = re.split(r'(?<=[.!?])\s+', text.strip())
+
+    words = re.findall(r"\b[a-zA-Z]+\b", text.lower())
+
+    important_words = [
+        word for word in words
+        if word not in STOP_WORDS
+    ]
+
+    frequencies = Counter(important_words)
+
+    scored_sentences = []
+
+    for index, sentence in enumerate(sentences):
+        sentence_words = re.findall(
+            r"\b[a-zA-Z]+\b",
+            sentence.lower()
+        )
+
+        sentence_score = sum(
+            frequencies[word]
+            for word in sentence_words
+            if word not in STOP_WORDS
+        )
+
+        scored_sentences.append(
+            (sentence_score, index, sentence)
+        )
+
+    selected = sorted(
+        scored_sentences,
+        key=lambda item: (-item[0], item[1])
+    )[:k]
+
+    selected.sort(key=lambda item: item[1])
+
+    return " ".join(
+        sentence for _, _, sentence in selected
+    )
+
+
+complaint = (
+    "The air near the factory is dirty. "
+    "Smoke is increasing every day. "
+    "The roads are clean. "
+    "Children are facing pollution problems."
+)
+
+print("Original:", complaint)
+print("Summary:", summarise(complaint, 2))
+
+--- Code Example 31 (source paragraph 1017, Python) ---
+import sqlite3
+import time
+
+con = sqlite3.connect("air_quality.db")
+
+query = """
+SELECT AVG(pm25)
+
+--- Code Example 32 (source paragraph 1028, Python) ---
+parameters = ("Adyar", "2026-10-01")
+
+# Measure before index
+start = time.perf_counter()
+
+for _ in range(100):
+    con.execute(query, parameters).fetchone()
+
+before = time.perf_counter() - start
+
+# Create index
+con.execute("""
+
+--- Code Example 33 (source paragraph 1044, Python) ---
+con.commit()
+
+# Measure after index
+start = time.perf_counter()
+
+for _ in range(100):
+    con.execute(query, parameters).fetchone()
+
+after = time.perf_counter() - start
+
+print("Before index:", before)
+print("After index:", after)
+
+con.close()
+
+--- Code Example 34 (source paragraph 1080, Python) ---
+def first_k_sentences(text, k):
+    sentences = text.split(".")
+    return ". ".join(
+        sentence.strip()
+        for sentence in sentences[:k]
+        if sentence.strip()
+    )
