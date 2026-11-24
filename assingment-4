@@ -1,0 +1,627 @@
+﻿Q1 – Mess Bill Record Processing
+
+
+def calculate_mess_bill(filename):
+    total = 0.0
+    report = []
+    rejected = []
+
+    try:
+        with open(filename, "r", encoding="utf-8") as file:
+            for line_number, line in enumerate(file, start=1):
+                if not line.strip():
+                    continue
+
+                try:
+                    parts = line.strip().split(",")
+
+                    if len(parts) != 3:
+                        raise ValueError("Expected 3 fields")
+
+                    register_no = parts[0].strip()
+                    name = parts[1].strip()
+                    amount = float(parts[2].strip())
+
+                    report.append(f"{name} {amount:.2f}")
+                    total += amount
+
+                except (ValueError, IndexError) as error:
+                    rejected.append(
+                        (line_number, line.strip(), str(error))
+                    )
+
+        print("MESS BILL REPORT")
+        for item in report:
+            print(item)
+
+        print("Total:", f"{total:.2f}")
+
+        print("\nRejected Records:")
+        for item in rejected:
+            print(item)
+
+    except FileNotFoundError:
+        print("Error: File not found.")
+
+    except PermissionError:
+        print("Error: Permission denied.")
+
+    return total, rejected
+
+
+calculate_mess_bill("mess_oct.txt")
+
+
+Q2 – Monthly Biometric Attendance File Processing System
+
+
+from pathlib import Path
+import csv
+from datetime import datetime
+
+# Folder containing daily attendance files
+input_folder = Path("attendance_files")
+
+# Create output folder
+output_folder = Path("output")
+output_folder.mkdir(exist_ok=True)
+
+# Dictionary to store attendance details
+attendance = {}
+
+# List to store damaged records
+damaged_records = []
+
+# Count valid records
+valid_records = 0
+
+# Get all CSV files from the input folder
+files = list(input_folder.glob("*.csv"))
+
+# Process each attendance file
+for file in files:
+
+    try:
+        with open(file, "r", encoding="utf-8") as f:
+
+            for line_number, line in enumerate(f, start=1):
+
+                fields = line.strip().split(",")
+
+                # Check whether the line has three fields
+                if len(fields) != 3:
+                    damaged_records.append(
+                        f"{file.name}, Line {line_number}: Missing or extra fields"
+                    )
+                    continue
+
+                register_number, date, status = fields
+
+                # Validate the fields
+                if not register_number.strip():
+                    damaged_records.append(
+                        f"{file.name}, Line {line_number}: Missing register number"
+                    )
+                    continue
+
+                try:
+                    datetime.strptime(date.strip(), "%Y-%m-%d")
+                except ValueError:
+                    damaged_records.append(
+                        f"{file.name}, Line {line_number}: Invalid date"
+                    )
+                    continue
+
+                status = status.strip().upper()
+
+                if status not in ["P", "A"]:
+                    damaged_records.append(
+                        f"{file.name}, Line {line_number}: Invalid attendance status"
+                    )
+                    continue
+
+                register_number = register_number.strip()
+
+                # Create student entry if not available
+                if register_number not in attendance:
+                    attendance[register_number] = {
+                        "present": 0,
+                        "absent": 0
+                    }
+
+                # Update attendance count
+                if status == "P":
+                    attendance[register_number]["present"] += 1
+                else:
+                    attendance[register_number]["absent"] += 1
+
+                valid_records += 1
+
+    except OSError as error:
+        damaged_records.append(
+            f"{file.name}: File error - {error}"
+        )
+
+# Generate monthly attendance report
+report_file = output_folder / "attendance_report.csv"
+
+with open(report_file, "w", newline="", encoding="utf-8") as f:
+
+    writer = csv.writer(f)
+
+    writer.writerow([
+        "Register Number",
+        "Present Days",
+        "Absent Days",
+        "Total Days",
+        "Attendance Percentage",
+        "Below 75%"
+    ])
+
+    for register_number, details in attendance.items():
+
+        present = details["present"]
+        absent = details["absent"]
+        total = present + absent
+
+        percentage = (present / total) * 100
+
+        shortage = "Yes" if percentage < 75 else "No"
+
+        writer.writerow([
+            register_number,
+            present,
+            absent,
+            total,
+            round(percentage, 2),
+            shortage
+        ])
+
+# Generate damaged records log
+log_file = output_folder / "damaged_records.txt"
+
+with open(log_file, "w", encoding="utf-8") as f:
+
+    for record in damaged_records:
+        f.write(record + "\n")
+
+# Display final results
+print("MONTHLY ATTENDANCE REPORT")
+print("-------------------------")
+
+for register_number, details in attendance.items():
+
+    present = details["present"]
+    absent = details["absent"]
+    total = present + absent
+
+    percentage = (present / total) * 100
+
+    print("Register Number:", register_number)
+    print("Present Days:", present)
+    print("Absent Days:", absent)
+    print("Attendance Percentage:", round(percentage, 2), "%")
+
+    if percentage < 75:
+        print("Status: Below 75%")
+    else:
+        print("Status: Eligible")
+
+    print()
+
+print("Valid Records:", valid_records)
+print("Damaged Records:", len(damaged_records))
+print("Attendance report saved successfully.")
+
+
+Q3 – Custom Exception for Attendance Records
+
+
+import os
+import tempfile
+
+
+class InvalidRecord(Exception):
+    """Raised when an attendance record is invalid."""
+
+
+def parse_line(line):
+    parts = line.strip().split(",")
+
+    if len(parts) != 3:
+        raise InvalidRecord(
+            f"expected 3 fields, found {len(parts)}"
+        )
+
+    register_no, date, status = (
+        part.strip() for part in parts
+    )
+
+    if status not in ("P", "A"):
+        raise InvalidRecord(f"invalid status '{status}'")
+
+    return register_no, date, status
+
+
+def summarise(path):
+    present = 0
+    absent = 0
+    errors = []
+
+    try:
+        with open(path, "r", encoding="utf-8") as file:
+            for line_number, line in enumerate(file, start=1):
+                if not line.strip():
+                    continue
+
+                try:
+                    register_no, date, status = parse_line(line)
+
+                    if status == "P":
+                        present += 1
+                    else:
+                        absent += 1
+
+                except InvalidRecord as error:
+                    errors.append((line_number, str(error)))
+
+    except FileNotFoundError as error:
+        raise FileNotFoundError(
+            f"Attendance file not found: {path}"
+        ) from error
+
+    except PermissionError as error:
+        raise PermissionError(
+            f"Permission denied: {path}"
+        ) from error
+
+    except UnicodeDecodeError as error:
+        raise ValueError(
+            "File contains invalid text encoding"
+        ) from error
+
+    else:
+        print("File processed successfully.")
+
+    finally:
+        print("File processing completed.")
+
+    return present, absent, errors
+
+
+data = (
+    "192311001,2026-10-08,P\n"
+    "192311002,2026-10-08,A\n"
+    "192311003,2026-10-08\n"
+    "192311004,2026-10-08,L\n"
+)
+
+with tempfile.NamedTemporaryFile(
+    "w",
+    suffix=".csv",
+    delete=False,
+    encoding="utf-8"
+) as tmp:
+    tmp.write(data)
+    filename = tmp.name
+
+try:
+    print(summarise(filename))
+except (FileNotFoundError, PermissionError, ValueError) as error:
+    print("Error:", error)
+finally:
+    os.remove(filename)
+
+
+Q3 – Exception Misuse Experiment
+
+
+try:
+    total = 100
+    print(totall)
+except Exception:
+    pass
+
+print("Program completed")
+
+
+Q4 – File Handling Test Program
+
+
+def save_returns(books):
+    log = open("returns_test.log", "w")
+
+    for book in books:
+        log.write(book)
+
+    log.close()
+
+
+def process(day_file):
+    try:
+        with open(day_file, "r", encoding="utf-8") as file:
+            books = file.read().split("\n")
+
+        save_returns(books)
+
+    except FileNotFoundError:
+        print("missing")
+
+
+save_returns(["Book A\n", "Book B\n"])
+save_returns(["Book C\n"])
+
+with open("returns_test.log", "r", encoding="utf-8") as file:
+    print(file.read())
+
+
+Q4 – Repaired Library Returns Program
+
+
+def save_returns(books):
+    with open("returns.log", "a", encoding="utf-8") as log:
+        for book in books:
+            if book.strip():
+                log.write(book.strip() + "\n")
+
+
+def process(day_file):
+    try:
+        with open(day_file, "r", encoding="utf-8") as file:
+            books = file.readlines()
+
+        save_returns(books)
+
+    except FileNotFoundError as error:
+        with open("error.log", "a", encoding="utf-8") as log:
+            log.write(f"{day_file}: {error}\n")
+
+    except PermissionError as error:
+        with open("error.log", "a", encoding="utf-8") as log:
+            log.write(f"{day_file}: {error}\n")
+
+
+process("day1.txt")
+process("day2.txt")
+process("day3.txt")
+
+print("Processing completed.")
+
+
+Q6 – College Fest Registration Package
+
+
+def validate_email(email):
+    email = email.strip().lower()
+
+    if " " in email:
+        return False
+
+    if email.count("@") != 1:
+        return False
+
+    local, domain = email.split("@")
+
+    if not local or not domain:
+        return False
+
+    if "." not in domain:
+        return False
+
+    if domain.startswith(".") or domain.endswith("."):
+        return False
+
+    return True
+
+
+def validate_record(line):
+    parts = line.strip().split(",")
+
+    if len(parts) != 5:
+        raise ValueError(
+            f"Expected 5 fields, found {len(parts)}"
+        )
+
+    register_no, name, department, email, events = (
+        part.strip() for part in parts
+    )
+
+    if not register_no:
+        raise ValueError("Register number is missing")
+
+    if not name:
+        raise ValueError("Student name is missing")
+
+    if not department:
+        raise ValueError("Department is missing")
+
+    if not validate_email(email):
+        raise ValueError("Invalid email address")
+
+    event_list = [
+        event.strip()
+        for event in events.split(";")
+        if event.strip()
+    ]
+
+    if not event_list:
+        raise ValueError("No events selected")
+
+    return {
+        "register_no": register_no,
+        "name": name,
+        "department": department,
+        "email": email.lower(),
+        "events": event_list
+    }
+File 2: registrations/reader.py
+def read_department_file(filename):
+    with open(filename, "r", encoding="utf-8") as file:
+        return enumerate(file, start=1)
+File 3: registrations/processor.py
+from .validator import validate_record
+
+
+def process_files(filenames):
+    master = []
+    seen_registers = set()
+    event_groups = {}
+    errors = []
+
+    for filename in filenames:
+        try:
+            with open(filename, "r", encoding="utf-8") as file:
+                for line_number, line in enumerate(file, start=1):
+                    if not line.strip():
+                        continue
+
+                    try:
+                        student = validate_record(line)
+
+                        register_no = student["register_no"]
+
+                        if register_no in seen_registers:
+                            raise ValueError(
+                                "Duplicate registration"
+                            )
+
+                        seen_registers.add(register_no)
+                        master.append(student)
+
+                        for event in student["events"]:
+                            event_groups.setdefault(event, []).append(
+                                student
+                            )
+
+                    except ValueError as error:
+                        errors.append(
+                            (filename, line_number, str(error))
+                        )
+
+        except FileNotFoundError:
+            errors.append(
+                (filename, 0, "Department file not found")
+            )
+
+        except PermissionError:
+            errors.append(
+                (filename, 0, "Permission denied")
+            )
+
+        except UnicodeDecodeError:
+            errors.append(
+                (filename, 0, "Invalid file encoding")
+            )
+
+        except OSError as error:
+            errors.append(
+                (filename, 0, str(error))
+            )
+
+    return master, event_groups, errors
+File 4: registrations/report.py
+import csv
+from pathlib import Path
+
+
+def write_reports(master, event_groups, errors):
+    output_folder = Path("output")
+    output_folder.mkdir(exist_ok=True)
+
+    # Master list
+    with open(
+        output_folder / "master_list.csv",
+        "w",
+        newline="",
+        encoding="utf-8"
+    ) as file:
+
+        writer = csv.writer(file)
+
+        writer.writerow([
+            "Register Number",
+            "Name",
+            "Department",
+            "Email",
+            "Events"
+        ])
+
+        for student in master:
+            writer.writerow([
+                student["register_no"],
+                student["name"],
+                student["department"],
+                student["email"],
+                ";".join(student["events"])
+            ])
+
+    # Event-wise files
+    for event, students in event_groups.items():
+        safe_name = "".join(
+            ch if ch.isalnum() else "_"
+            for ch in event
+        )
+
+        with open(
+            output_folder / f"{safe_name}.txt",
+            "w",
+            encoding="utf-8"
+        ) as file:
+
+            for student in students:
+                file.write(
+                    f"{student['register_no']}, "
+                    f"{student['name']}, "
+                    f"{student['department']}\n"
+                )
+
+    # Summary report
+    with open(
+        output_folder / "summary.txt",
+        "w",
+        encoding="utf-8"
+    ) as file:
+
+        file.write("COLLEGE FEST SUMMARY\n")
+        file.write(f"Total registrations: {len(master)}\n")
+
+        for event, students in sorted(event_groups.items()):
+            file.write(
+                f"{event}: {len(students)} participants\n"
+            )
+
+    # Error log
+    with open(
+        output_folder / "errors.log",
+        "w",
+        encoding="utf-8"
+    ) as file:
+
+        for filename, line_number, message in errors:
+            file.write(
+                f"{filename}, Line {line_number}: {message}\n"
+            )
+File 5: registrations/__init__.py
+from .processor import process_files
+from .report import write_reports
+File 6: main.py
+from registrations import process_files, write_reports
+
+department_files = [
+    "input/department1.txt",
+    "input/department2.txt",
+    "input/department3.txt",
+    "input/department4.txt",
+    "input/department5.txt"
+]
+
+master, event_groups, errors = process_files(department_files)
+
+write_reports(master, event_groups, errors)
+
+print("FEST REGISTRATION PROCESSING COMPLETED")
+print("Valid registrations:", len(master))
+print("Events:", len(event_groups))
+print("Errors:", len(errors))
+print("Output files are available in the output folder.")
+
