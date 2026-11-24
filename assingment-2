@@ -1,0 +1,331 @@
+﻿EXTRACTED PYTHON SOURCE CODE – CO2_PYTHON.docx
+
+
+# Q1: Electricity Subsidy Eligibility
+units = int(input("Enter electricity units: "))
+ration_card = input("Do you have a ration card? (yes/no): ").lower()
+senior = input("Is any member above 80 years? (yes/no): ").lower()
+# Method 1: Separate if statements
+print("\nUsing Separate If Statements:")
+if units <= 100:
+    print("Full Subsidy")
+if 101 <= units <= 200 and ration_card == "yes":
+    print("Partial Subsidy")
+if units > 200 and senior == "yes":
+    print("Special Subsidy")
+if not (units <= 100 or
+        (101 <= units <= 200 and ration_card == "yes") or
+        (units > 200 and senior == "yes")):
+    print("No Subsidy")
+# Method 2: if-elif-else
+print("\nUsing If-Elif-Else:")
+if units <= 100:
+    result = "Full Subsidy"
+elif 101 <= units <= 200 and ration_card == "yes":
+    result = "Partial Subsidy"
+elif units > 200 and senior == "yes":
+    result = "Special Subsidy"
+else:
+    result = "No Subsidy"
+print("Final Decision:", result)
+
+==========================================================
+Q2 – LOOPS THAT COUNT ATTEMPTS (4 MARKS)
+==========================================================
+
+Program 1: Using while loop
+# Q2: OTP Verification using while loop
+correct_otp = "1234"
+attempts = 0
+max_attempts = 3
+while attempts < max_attempts:
+    otp = input("Enter OTP: ").strip()
+    if otp == "":
+        print("Blank entry. Try again.")
+        continue
+    if otp == correct_otp:
+        print("OTP verified successfully!")
+        break
+    attempts += 1
+    print("Wrong OTP!")
+else:
+    print("Account locked for 30 minutes.")
+# Demonstration of pass
+if False:
+    pass
+Program 2: Using for loop
+# Q2: OTP Verification using for loop
+correct_otp = "1234"
+attempts = 0
+for i in range(3):
+    while True:
+        otp = input("Enter OTP: ").strip()
+        if otp == "":
+            print("Blank entry. Try again.")
+            continue
+        break
+    if otp == correct_otp:
+        print("OTP verified successfully!")
+        break
+    attempts += 1
+    print("Wrong OTP!")
+else:
+    print("Account locked for 30 minutes.")
+# Demonstration of pass
+if False:
+    pass
+
+
+# Q3: Vehicle Registration Number Validator
+def normalise(text):
+    text = text.strip()
+    text = text.replace(" ", "")
+    text = text.replace("-", "")
+    text = text.upper()
+    return text
+def is_valid(reg):
+    if len(reg) != 9 and len(reg) != 10:
+        return False
+    # Check state code
+    if not reg[0:2].isalpha():
+        return False
+    # Check district code
+    if not reg[2:4].isdigit():
+        return False
+    # Check series and final digits
+    if len(reg) == 9:
+        if not reg[4:5].isalpha():
+            return False
+        if not reg[5:9].isdigit():
+            return False
+    elif len(reg) == 10:
+        if not reg[4:6].isalpha():
+            return False
+        if not reg[6:10].isdigit():
+            return False
+    return True
+def format_number(reg):
+    if not is_valid(reg):
+        return "Invalid Number"
+    if len(reg) == 9:
+        return (reg[0:2] + " " + reg[2:4] + " " +
+                reg[4:5] + " " + reg[5:9])
+    else:
+        return (reg[0:2] + " " + reg[2:4] + " " +
+                reg[4:6] + " " + reg[6:10])
+numbers = [
+    "tn 09 ab 1234",
+    "KA-01-M-0007",
+    "TN9AB1234",
+    "TN 22 1234 AB",
+    "AP 39 C 5678",
+    "MH 12 XY 9876"
+]
+for raw in numbers:
+    reg = normalise(raw)
+    if is_valid(reg):
+        print(raw, "->", format_number(reg), "VALID")
+    else:
+        print(raw, "->", reg, "INVALID")
+
+
+# Q4: Comparing String Building Methods
+import time
+def build_plus(parts):
+    text = ""
+    for p in parts:
+        text += p + ";"
+    return text
+def build_join(parts):
+    return ";".join(parts) + ";"
+def build_fstring(parts):
+    lines = []
+    for i, p in enumerate(parts):
+        lines.append(f"{p};")
+    return "".join(lines)
+sizes = [1000, 10000, 200000]
+for size in sizes:
+    items = [f"Item{i}:Rs{i % 50}" for i in range(size)]
+    plus_times = []
+    join_times = []
+    fstring_times = []
+    for run in range(3):
+        start = time.perf_counter()
+        a = build_plus(items)
+        plus_times.append(time.perf_counter() - start)
+        start = time.perf_counter()
+        b = build_join(items)
+        join_times.append(time.perf_counter() - start)
+        start = time.perf_counter()
+        c = build_fstring(items)
+        fstring_times.append(time.perf_counter() - start)
+    print("\nNumber of lines:", size)
+    print("Same text:", a == b == c)
+    print("Average += time:",
+          round(sum(plus_times) / 3, 6), "seconds")
+    print("Average join time:",
+          round(sum(join_times) / 3, 6), "seconds")
+    print("Average f-string time:",
+          round(sum(fstring_times) / 3, 6), "seconds")
+
+
+# Q5: Functions, Parameters and Scope
+# Buggy function
+def add_item_buggy(item, order=[]):
+    order.append(item)
+    return order
+# Correct function
+def add_item(item, order=None):
+    if order is None:
+        order = []
+    order.append(item)
+    return order
+# Demonstrate the bug
+print("Buggy Function:")
+print(add_item_buggy("Tea"))
+print(add_item_buggy("Vada"))
+# Correct function
+print("\nCorrect Function:")
+customer1 = add_item("Tea")
+customer2 = add_item("Vada")
+customer3 = add_item("Coffee")
+print("Customer 1:", customer1)
+print("Customer 2:", customer2)
+print("Customer 3:", customer3)
+# Positional, keyword and default parameters
+def calculate_bill(item, price, quantity=1):
+    total = price * quantity
+    gst = total * 0.05
+    return total, gst
+print("\nBill Details:")
+bill, gst_amount = calculate_bill("Tea", 15, quantity=2)
+print("Bill:", bill)
+print("GST:", gst_amount)
+# Local and global scope
+college = "Saveetha"
+def show_college():
+    subject = "Python"
+    print("Local variable:", subject)
+    print("Global variable:", college)
+show_college()
+# Global keyword
+count = 0
+def update_count():
+    global count
+    count += 1
+update_count()
+print("Global count:", count)
+# Nonlocal scope
+def outer_function():
+    message = "Hello"
+    def inner_function():
+        nonlocal message
+        message = "Welcome"
+    inner_function()
+    print("Nonlocal variable:", message)
+outer_function()
+# Display default values
+print("\nDefault values:", add_item_buggy.__defaults__)
+
+
+# Q6: Temple Steps using Recursion and Memoisation
+from functools import lru_cache
+import sys
+calls = 0
+# Normal recursion
+def ways_naive(n):
+    global calls
+    calls += 1
+    if n <= 1:
+        return 1
+    return ways_naive(n - 1) + ways_naive(n - 2)
+# Recursion with memoisation
+@lru_cache(maxsize=None)
+def ways_memo(n):
+    global calls
+    calls += 1
+    if n <= 1:
+        return 1
+    return ways_memo(n - 1) + ways_memo(n - 2)
+# Iterative method
+def ways_loop(n):
+    if n <= 1:
+        return 1
+    a = 1
+    b = 1
+    for i in range(2, n + 1):
+        c = a + b
+        a = b
+        b = c
+    return b
+# Check answers from 1 to 6
+print("Number of ways:")
+for n in range(1, 7):
+    print(n, "steps:", ways_loop(n))
+# Compare function calls for n = 10, 20, 25 and 30
+print("\nFunction Call Comparison:")
+for n in [10, 20, 25, 30]:
+    calls = 0
+    naive_result = ways_naive(n)
+    naive_calls = calls
+    calls = 0
+    ways_memo.cache_clear()
+    memo_result = ways_memo(n)
+    memo_calls = calls
+    print("\nn =", n)
+    print("Naive result:", naive_result)
+    print("Naive calls:", naive_calls)
+    print("Memoised result:", memo_result)
+    print("Memoised calls:", memo_calls)
+# Test large staircase using iteration
+print("\nWays for 1000 steps:", ways_loop(1000))
+print("Recursion limit:", sys.getrecursionlimit())
+# Test memoised recursion at 1000 steps
+try:
+    ways_memo.cache_clear()
+    print("Memoised result for 1000:", ways_memo(1000))
+except RecursionError:
+    print("RecursionError: Maximum recursion depth exceeded.")
+
+
+# Q7: Diagnose, Redesign and Validate
+import time
+# Original recursive solution
+def original_ways(n):
+    if n <= 1:
+        return 1
+    return original_ways(n - 1) + original_ways(n - 2)
+# Redesigned iterative solution
+def redesigned_ways(n):
+    if n <= 1:
+        return 1
+    a = 1
+    b = 1
+    for i in range(2, n + 1):
+        c = a + b
+        a = b
+        b = c
+    return b
+# Test input
+n = 30
+# Measure original method
+start = time.perf_counter()
+original_result = original_ways(n)
+original_time = time.perf_counter() - start
+# Measure redesigned method
+start = time.perf_counter()
+redesigned_result = redesigned_ways(n)
+redesigned_time = time.perf_counter() - start
+# Display comparison
+print("Input steps:", n)
+print("\nOriginal Recursive Method")
+print("Result:", original_result)
+print("Execution time:", original_time)
+print("\nRedesigned Iterative Method")
+print("Result:", redesigned_result)
+print("Execution time:", redesigned_time)
+# Validate both results
+if original_result == redesigned_result:
+    print("\nValidation: SUCCESS")
+else:
+    print("\nValidation: FAILED")
